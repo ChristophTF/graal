@@ -30,6 +30,7 @@ import com.oracle.graal.pointsto.PointsToAnalysis;
 import com.oracle.graal.pointsto.flow.AllInstantiatedTypeFlow;
 import com.oracle.graal.pointsto.flow.StoreFieldTypeFlow;
 import com.oracle.graal.pointsto.flow.StoreFieldTypeFlow.StoreInstanceFieldTypeFlow;
+import com.oracle.graal.pointsto.flow.TypeFlow;
 import com.oracle.graal.pointsto.util.AtomicUtils;
 
 import jdk.vm.ci.code.BytecodePosition;
@@ -55,7 +56,7 @@ public class PointsToAnalysisField extends AnalysisField {
     /** Create an unique, per field, context insensitive store. */
     private StoreInstanceFieldTypeFlow createContextInsensitiveStore(PointsToAnalysis bb, BytecodePosition originalLocation) {
         /* The receiver object flow is the field declaring type flow. */
-        AllInstantiatedTypeFlow objectFlow = declaringClass.getTypeFlow(bb, false);
+        TypeFlow<AnalysisType> objectFlow = declaringClass.getTypeFlow(bb, false);
         /*
          * The context insensitive store doesn't have a value flow, it will instead be linked with
          * the value flows at all the locations where it is swapped in.

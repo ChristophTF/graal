@@ -384,7 +384,7 @@ public abstract class PointsToAnalysis implements BigBang {
     }
 
     public TypeFlow<?> getAllInstantiatedTypeFlow() {
-        return objectType.getTypeFlow(this, true);
+        return objectType.getAllInstantiatedTypeFlow(this, true);
     }
 
     public TypeState getAllInstantiatedTypes() {

@@ -139,7 +139,7 @@ public class PointsToAnalysisMethod extends AnalysisMethod {
          * The receiver flow of the context insensitive invoke is the type flow of its declaring
          * class.
          */
-        AllInstantiatedTypeFlow receiverFlow = receiverType.getTypeFlow(bb, false);
+        TypeFlow<AnalysisType> receiverFlow = receiverType.getTypeFlow(bb, false);
 
         actualParameters[0] = receiverFlow;
         for (int i = 1; i < actualParameters.length; i++) {
@@ -171,7 +171,7 @@ public class PointsToAnalysisMethod extends AnalysisMethod {
      */
     private static void initContextInsensitiveInvoke(PointsToAnalysis bb, AnalysisMethod method, InvokeTypeFlow invoke) {
         AnalysisType receiverType = method.getDeclaringClass();
-        AllInstantiatedTypeFlow receiverFlow = receiverType.getTypeFlow(bb, false);
+        TypeFlow<AnalysisType> receiverFlow = receiverType.getTypeFlow(bb, false);
         receiverFlow.addObserver(bb, invoke);
     }
 

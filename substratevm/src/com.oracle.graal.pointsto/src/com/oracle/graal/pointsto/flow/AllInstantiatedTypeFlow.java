@@ -28,6 +28,8 @@ import com.oracle.graal.pointsto.PointsToAnalysis;
 import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.graal.pointsto.typestate.TypeState;
 
+import java.util.Optional;
+
 public final class AllInstantiatedTypeFlow extends TypeFlow<AnalysisType> {
 
     public AllInstantiatedTypeFlow(AnalysisType declaredType, boolean canBeNull) {
@@ -52,4 +54,14 @@ public final class AllInstantiatedTypeFlow extends TypeFlow<AnalysisType> {
     public String toString() {
         return "AllInstantiated" + super.toString();
     }
+/*
+    public TypeState filter(PointsToAnalysis bb, TypeState newState)
+    {
+        Optional<AnalysisType> bigInteger = newState.typesStream(bb).filter(t -> t.toJavaName().contains("BigInteger")).findFirst();
+        if(bigInteger.isPresent())
+        {
+            return TypeState.forSubtraction(bb, newState, TypeState.forExactType(bb, bigInteger.get(), true));
+        }
+        return newState;
+    }*/
 }

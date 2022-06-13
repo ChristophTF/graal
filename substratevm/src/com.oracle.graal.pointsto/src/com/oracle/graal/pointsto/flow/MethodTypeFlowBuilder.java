@@ -820,7 +820,7 @@ public class MethodTypeFlowBuilder {
                      * generate a heap object for each instantiated type.
                      */
                     instanceType = bb.getObjectType();
-                    instanceTypeBuilder = TypeFlowBuilder.create(bb, instanceType, AllInstantiatedTypeFlow.class, () -> {
+                    instanceTypeBuilder = TypeFlowBuilder.create(bb, instanceType, TypeFlow.class, () -> {
                         return instanceType.getTypeFlow(bb, false);
                     });
                 }

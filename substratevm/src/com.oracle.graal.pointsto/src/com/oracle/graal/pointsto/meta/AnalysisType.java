@@ -40,6 +40,8 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Consumer;
 
+import com.oracle.graal.pointsto.flow.AllEscapedTypeFlow;
+import com.oracle.graal.pointsto.flow.TypeFlow;
 import org.graalvm.compiler.debug.GraalError;
 import org.graalvm.compiler.graph.Node;
 import org.graalvm.util.GuardedAnnotationAccess;
@@ -313,6 +315,8 @@ public abstract class AnalysisType extends AnalysisElement implements WrappedJav
         uniqueConstant = null;
         unsafeAccessedFields = null;
         typeData = null;
+        escapedTypes = null;
+        escapedTypesNonNull = null;
     }
 
     public int getId() {
@@ -398,11 +402,23 @@ public abstract class AnalysisType extends AnalysisElement implements WrappedJav
     public AllInstantiatedTypeFlow instantiatedTypes = new AllInstantiatedTypeFlow(this, true);
     public AllInstantiatedTypeFlow instantiatedTypesNonNull = new AllInstantiatedTypeFlow(this, false);
 
+    public AllEscapedTypeFlow escapedTypes = new AllEscapedTypeFlow(this, true);
+
+    public AllEscapedTypeFlow escapedTypesNonNull = new AllEscapedTypeFlow(this, false);
+
     /*
      * Returns a type flow containing all types that are assignable from this type and are also
      * instantiated.
      */
-    public AllInstantiatedTypeFlow getTypeFlow(@SuppressWarnings("unused") BigBang bb, boolean includeNull) {
+    public TypeFlow<AnalysisType> getTypeFlow(@SuppressWarnings("unused") BigBang bb, boolean includeNull) {
+        if (includeNull) {
+            return escapedTypes; // risky
+        } else {
+            return escapedTypesNonNull; // risky
+        }
+    }
+
+    public TypeFlow<AnalysisType> getAllInstantiatedTypeFlow(@SuppressWarnings("unused") BigBang bb, boolean includeNull) {
         if (includeNull) {
             return instantiatedTypes;
         } else {
