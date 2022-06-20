@@ -410,13 +410,10 @@ public abstract class AnalysisType extends AnalysisElement implements WrappedJav
 
     private void ensureConnected(PointsToAnalysis bb)
     {
-        /*
         if(!escapedConnected)
         {
             escapedConnected = true;
-            instantiatedTypes.addUse(bb, escapedTypes);
-            instantiatedTypesNonNull.addUse(bb, escapedTypesNonNull);
-        }*/
+        }
     }
 
     /*
@@ -489,9 +486,16 @@ public abstract class AnalysisType extends AnalysisElement implements WrappedJav
         registerAsReachable();
         if (AtomicUtils.atomicMark(this, isInHeapUpdater)) {
             onInstantiated(UsageKind.InHeap);
+            registerAsEscaped();
             return true;
         }
         return false;
+    }
+
+    public boolean registerAsEscaped() {
+        PointsToAnalysis bb = (PointsToAnalysis)universe.getBigbang();
+        return escapedTypes.addState(bb, TypeState.forExactType(bb, this, true))
+            | escapedTypesNonNull.addState(bb, TypeState.forExactType(bb, this, false));
     }
 
     /**

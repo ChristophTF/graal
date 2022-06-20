@@ -54,14 +54,4 @@ public final class AllInstantiatedTypeFlow extends TypeFlow<AnalysisType> {
     public String toString() {
         return "AllInstantiated" + super.toString();
     }
-/*
-    public TypeState filter(PointsToAnalysis bb, TypeState newState)
-    {
-        Optional<AnalysisType> bigInteger = newState.typesStream(bb).filter(t -> t.toJavaName().contains("BigInteger")).findFirst();
-        if(bigInteger.isPresent())
-        {
-            return TypeState.forSubtraction(bb, newState, TypeState.forExactType(bb, bigInteger.get(), true));
-        }
-        return newState;
-    }*/
 }
