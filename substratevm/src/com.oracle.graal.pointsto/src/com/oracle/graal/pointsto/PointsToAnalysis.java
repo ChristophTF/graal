@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.function.Function;
 
+import com.oracle.graal.pointsto.flow.FormalReturnTypeFlow;
 import org.graalvm.compiler.api.replacements.SnippetReflectionProvider;
 import org.graalvm.compiler.core.common.SuppressFBWarnings;
 import org.graalvm.compiler.core.common.spi.ConstantFieldProvider;
@@ -160,6 +161,7 @@ public abstract class PointsToAnalysis implements BigBang {
          * Make sure the all-instantiated type flow is created early. We do not have any
          * instantiated types yet, so the state is empty at first.
          */
+        objectType.getAllInstantiatedTypeFlow(this, true);
         objectType.getTypeFlow(this, true);
         allSynchronizedTypeFlow = new AllSynchronizedTypeFlow();
 
@@ -290,14 +292,18 @@ public abstract class PointsToAnalysis implements BigBang {
 
     @Override
     public void registerAsJNIAccessed(AnalysisField field, boolean writable) {
+        //System.out.println("JNI-Accessed: " + field + (writable ? " (writable)" : ""));
         // Same as addRootField() and addRootStaticField():
         // create type flows for any subtype of the field's declared type
         TypeFlow<?> declaredTypeFlow = field.getType().getTypeFlow(this, true);
+        TypeFlow<?> declaredTypeFlow2 = field.getType().getAllInstantiatedTypeFlow(this, true);
         if (field.isStatic()) {
             declaredTypeFlow.addUse(this, field.getStaticFieldFlow());
+            declaredTypeFlow2.addUse(this, field.getStaticFieldFlow());
         } else {
             FieldTypeFlow instanceFieldFlow = field.getDeclaringClass().getContextInsensitiveAnalysisObject().getInstanceFieldFlow(this, field, writable);
             declaredTypeFlow.addUse(this, instanceFieldFlow);
+            declaredTypeFlow2.addUse(this, instanceFieldFlow);
         }
     }
 
@@ -464,6 +470,14 @@ public abstract class PointsToAnalysis implements BigBang {
                             initialParameterFlow.addUse(this, parameter);
                         }
                     }
+
+                    AnalysisType declaredReturnType = (AnalysisType)signature.getReturnType(declaringClass);
+                    FormalReturnTypeFlow returnFlow = methodFlowsGraph.getReturnFlow();
+                    if(declaredReturnType.getJavaKind() == JavaKind.Object && returnFlow != null)
+                    {
+                        TypeFlow<?> initialReturnFlow = declaredReturnType.getTypeFlow(this, true);
+                        returnFlow.addUse(this, initialReturnFlow);
+                    }
                 });
             } else {
                 if (invokeSpecial && pointsToMethod.isAbstract()) {
@@ -541,12 +555,16 @@ public abstract class PointsToAnalysis implements BigBang {
                 if (addFields) {
                     field.registerAsAccessed();
                 }
+
+                TypeFlow<?> fieldFlow = type.getContextInsensitiveAnalysisObject().getInstanceFieldFlow(this, field, true);
+
                 /*
                  * For system classes any instantiated (sub)type of the declared field type can be
                  * written to the field flow.
                  */
                 TypeFlow<?> fieldDeclaredTypeFlow = field.getType().getTypeFlow(this, true);
-                fieldDeclaredTypeFlow.addUse(this, type.getContextInsensitiveAnalysisObject().getInstanceFieldFlow(this, field, true));
+                fieldDeclaredTypeFlow.addUse(this, fieldFlow);
+                fieldFlow.addUse(this, fieldDeclaredTypeFlow);
             }
             if (type.getSuperclass() != null) {
                 addRootClass(type.getSuperclass(), addFields, addArrayClass);
@@ -570,8 +588,15 @@ public abstract class PointsToAnalysis implements BigBang {
                      * For system classes any instantiated (sub)type of the declared field type can
                      * be written to the field flow.
                      */
+                    TypeFlow<?> fieldFlow = type.getContextInsensitiveAnalysisObject().getInstanceFieldFlow(this, field, true);
+
                     TypeFlow<?> fieldDeclaredTypeFlow = field.getType().getTypeFlow(this, true);
-                    fieldDeclaredTypeFlow.addUse(this, type.getContextInsensitiveAnalysisObject().getInstanceFieldFlow(this, field, true));
+                    fieldDeclaredTypeFlow.addUse(this, fieldFlow);
+
+                    /*
+                     * Any type written to the field can escape.
+                     */
+                    fieldFlow.addUse(this, fieldDeclaredTypeFlow);
                 }
                 return field.getType();
             }
@@ -588,8 +613,10 @@ public abstract class PointsToAnalysis implements BigBang {
                 reflectField = clazz.getField(fieldName);
                 AnalysisField field = metaAccess.lookupJavaField(reflectField);
                 field.registerAsAccessed();
-                TypeFlow<?> fieldFlow = field.getType().getTypeFlow(this, true);
-                fieldFlow.addUse(this, field.getStaticFieldFlow());
+                TypeFlow<?> fieldFlow = field.getStaticFieldFlow();
+                TypeFlow<?> fieldDeclaredTypeFlow = field.getType().getTypeFlow(this, true);
+                fieldDeclaredTypeFlow.addUse(this, fieldFlow);
+                fieldFlow.addUse(this, fieldDeclaredTypeFlow);
                 return field.getType();
             }
         } catch (NoSuchFieldException e) {

@@ -296,23 +296,6 @@ public abstract class TypeFlow<T> {
     public boolean addState(PointsToAnalysis bb, TypeState add, boolean postFlow) {
         PointsToStats.registerTypeFlowUpdate(bb, this, add);
 
-        if(this instanceof AllEscapedTypeFlow)
-        {
-
-        }
-        else
-        {
-            for (AnalysisType type : add.types(bb)) {
-                TypeState typeState = TypeState.forExactType(bb, type, true);
-                TypeState typeStateNonNull = TypeState.forExactType(bb, type, false);
-
-                type.forAllSuperTypes(t -> {
-                    t.escapedTypes.addState(bb, typeState);
-                    t.escapedTypesNonNull.addState(bb, typeStateNonNull);
-                });
-            }
-        }
-
         TypeState before;
         TypeState after;
         TypeState filteredAdd;

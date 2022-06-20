@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.oracle.graal.pointsto.flow.AllEscapedTypeFlow;
 import org.graalvm.graphio.GraphOutput;
 import org.graalvm.graphio.GraphStructure;
 import org.graalvm.nativeimage.hosted.Feature.OnAnalysisExitAccess;
@@ -437,6 +438,7 @@ class PointsToJsonObject extends JsonObject {
             names.put(ArrayElementsTypeFlow.class, "arrayElements");
             names.put(FieldFilterTypeFlow.class, "fieldFilter");
             names.put(ContextInsensitiveFieldTypeFlow.class, "fieldSink");
+            names.put(AllEscapedTypeFlow.class, "allEscaped");
         }
 
         /**
