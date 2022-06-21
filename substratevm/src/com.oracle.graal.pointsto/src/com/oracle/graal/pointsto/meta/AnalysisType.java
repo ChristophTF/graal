@@ -406,23 +406,11 @@ public abstract class AnalysisType extends AnalysisElement implements WrappedJav
 
     public AllEscapedTypeFlow escapedTypesNonNull = new AllEscapedTypeFlow(this, false);
 
-    private boolean escapedConnected = false;
-
-    private void ensureConnected(PointsToAnalysis bb)
-    {
-        if(!escapedConnected)
-        {
-            escapedConnected = true;
-        }
-    }
-
     /*
      * Returns a type flow containing all types that are assignable from this type and are also
      * instantiated.
      */
     public TypeFlow<AnalysisType> getTypeFlow(@SuppressWarnings("unused") BigBang bb, boolean includeNull) {
-        ensureConnected((PointsToAnalysis) bb);
-
         if (includeNull) {
             return escapedTypes; // risky
         } else {
@@ -431,8 +419,6 @@ public abstract class AnalysisType extends AnalysisElement implements WrappedJav
     }
 
     public TypeFlow<AnalysisType> getAllInstantiatedTypeFlow(@SuppressWarnings("unused") BigBang bb, boolean includeNull) {
-        ensureConnected((PointsToAnalysis) bb);
-
         if (includeNull) {
             return instantiatedTypes;
         } else {
@@ -493,9 +479,12 @@ public abstract class AnalysisType extends AnalysisElement implements WrappedJav
     }
 
     public boolean registerAsEscaped() {
+        //return false;
+
         PointsToAnalysis bb = (PointsToAnalysis)universe.getBigbang();
         return escapedTypes.addState(bb, TypeState.forExactType(bb, this, true))
             | escapedTypesNonNull.addState(bb, TypeState.forExactType(bb, this, false));
+
     }
 
     /**

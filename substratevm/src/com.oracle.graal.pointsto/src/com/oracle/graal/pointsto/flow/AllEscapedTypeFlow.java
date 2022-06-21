@@ -42,11 +42,6 @@ public final class AllEscapedTypeFlow extends TypeFlow<AnalysisType> {
                 ref.any |= t.escapedTypesNonNull.superAddState(bb, typeStateNonNull);
             });
 
-            if(ref.any && type.toJavaName().contains("BigInteger"))
-            {
-                System.out.println("Type \"" + type.toString() + "\" escaped into " + this.getClass().toString());
-            }
-
             anyany |= ref.any;
         }
 
