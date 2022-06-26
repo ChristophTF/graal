@@ -292,18 +292,18 @@ public abstract class PointsToAnalysis implements BigBang {
 
     @Override
     public void registerAsJNIAccessed(AnalysisField field, boolean writable) {
-        //System.out.println("JNI-Accessed: " + field + (writable ? " (writable)" : ""));
         // Same as addRootField() and addRootStaticField():
         // create type flows for any subtype of the field's declared type
         TypeFlow<?> declaredTypeFlow = field.getType().getTypeFlow(this, true);
-        TypeFlow<?> declaredTypeFlow2 = field.getType().getAllInstantiatedTypeFlow(this, true);
         if (field.isStatic()) {
             declaredTypeFlow.addUse(this, field.getStaticFieldFlow());
-            declaredTypeFlow2.addUse(this, field.getStaticFieldFlow());
+            if(writable)
+                field.getStaticFieldFlow().addUse(this, declaredTypeFlow);
         } else {
             FieldTypeFlow instanceFieldFlow = field.getDeclaringClass().getContextInsensitiveAnalysisObject().getInstanceFieldFlow(this, field, writable);
             declaredTypeFlow.addUse(this, instanceFieldFlow);
-            declaredTypeFlow2.addUse(this, instanceFieldFlow);
+            if(writable)
+                instanceFieldFlow.addUse(this, declaredTypeFlow);
         }
     }
 

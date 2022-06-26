@@ -21,11 +21,6 @@ public final class AllEscapedTypeFlow extends TypeFlow<AnalysisType> {
     }
 
     @Override
-    public String toString() {
-        return "AllEscaped" + super.toString();
-    }
-
-    @Override
     public boolean addState(PointsToAnalysis bb, TypeState add, boolean postFlow) {
         boolean anyany = false;
 

@@ -28,8 +28,6 @@ import com.oracle.graal.pointsto.PointsToAnalysis;
 import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.graal.pointsto.typestate.TypeState;
 
-import java.util.Optional;
-
 public final class AllInstantiatedTypeFlow extends TypeFlow<AnalysisType> {
 
     public AllInstantiatedTypeFlow(AnalysisType declaredType, boolean canBeNull) {

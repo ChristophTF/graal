@@ -27,11 +27,9 @@ package com.oracle.graal.pointsto.meta;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.oracle.graal.pointsto.PointsToAnalysis;
-import com.oracle.graal.pointsto.flow.AllEscapedTypeFlow;
-import com.oracle.graal.pointsto.flow.AllInstantiatedTypeFlow;
+import com.oracle.graal.pointsto.flow.TypeFlow;
 import com.oracle.graal.pointsto.flow.OffsetStoreTypeFlow.StoreIndexedTypeFlow;
 import com.oracle.graal.pointsto.flow.OffsetStoreTypeFlow.UnsafeStoreTypeFlow;
-import com.oracle.graal.pointsto.flow.TypeFlow;
 import com.oracle.graal.pointsto.util.AtomicUtils;
 
 import jdk.vm.ci.code.BytecodePosition;
