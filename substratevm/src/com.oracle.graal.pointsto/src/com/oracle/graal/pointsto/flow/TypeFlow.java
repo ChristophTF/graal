@@ -549,6 +549,7 @@ public abstract class TypeFlow<T> {
         for (TypeFlow<?> use : getUses()) {
             if (use.isSaturated()) {
                 removeUse(use);
+                addUse(bb, bb.getObjectType().getTypeFlow(bb, true));
             } else {
                 use.addState(bb, curState);
             }
