@@ -424,6 +424,36 @@ public abstract class PointsToAnalysis implements BigBang {
     }
 
     /**
+     * Some entry-points provide dynamic functionality and would escape any instantiated type. Block these.
+     */
+    private boolean returnValueEscapes(AnalysisType declaringClass, AnalysisMethod method)
+    {
+        String typeName = declaringClass.toJavaName();
+
+        switch(typeName)
+        {
+            case "com.oracle.svm.core.reflect.ReflectionAccessorHolder":
+            case "java.lang.invoke.VarHandleReferences$FieldInstanceReadOnly":
+            case "java.lang.invoke.VarHandleReferences$FieldInstanceReadWrite":
+            case "java.lang.invoke.VarHandleReferences$Array":
+                return false;
+        }
+
+        String methodName = method.getName();
+
+        switch (methodName) {
+            case "slowPathNewInstance":
+            case "slowPathNewPodInstance":
+            case "newMultiArrayStub":
+            case "slowPathNewArray":
+            case "doClone":
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Registers the method as root.
      * 
      * Static methods are immediately analyzed and marked as implementation-invoked which will also
@@ -473,7 +503,7 @@ public abstract class PointsToAnalysis implements BigBang {
 
                     AnalysisType declaredReturnType = (AnalysisType)signature.getReturnType(declaringClass);
                     FormalReturnTypeFlow returnFlow = methodFlowsGraph.getReturnFlow();
-                    if(declaredReturnType.getJavaKind() == JavaKind.Object && returnFlow != null)
+                    if(declaredReturnType.getJavaKind() == JavaKind.Object && returnFlow != null && returnValueEscapes(declaringClass, aMethod))
                     {
                         TypeFlow<?> initialReturnFlow = declaredReturnType.getTypeFlow(this, true);
                         returnFlow.addUse(this, initialReturnFlow);
