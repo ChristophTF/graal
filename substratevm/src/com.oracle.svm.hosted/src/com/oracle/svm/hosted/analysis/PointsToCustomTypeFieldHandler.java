@@ -50,6 +50,7 @@ public class PointsToCustomTypeFieldHandler extends CustomTypeFieldHandler {
             if (type.isPrimitive()) {
                 continue;
             }
+            // Christoph Blumschein: Replacing this with AllEscapedTypeFlow has shown to bring no value except provoking a segfault
             TypeFlow<?> typeFlow = type.getAllInstantiatedTypeFlow(analysis, true);
             if (aField.isStatic()) {
                 typeFlow.addUse(analysis, aField.getStaticFieldFlow());
@@ -68,7 +69,7 @@ public class PointsToCustomTypeFieldHandler extends CustomTypeFieldHandler {
                          * possible objects that can be stored in the array.
                          */
                         TypeFlow<?> elementsFlow = type.getContextInsensitiveAnalysisObject().getArrayElementsFlow(analysis, true);
-                        fieldComponentType.getAllInstantiatedTypeFlow(analysis, false).addUse(analysis, elementsFlow);
+                        fieldComponentType.getTypeFlow(analysis, false).addUse(analysis, elementsFlow);
 
                         /*
                          * In the current implementation it is not necessary to do it it recursively

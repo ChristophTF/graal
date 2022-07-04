@@ -389,6 +389,10 @@ public abstract class PointsToAnalysis implements BigBang {
         return metaAccess.lookupJavaType(Thread.class);
     }
 
+    public TypeFlow<?> getAllEscapedTypeFlow() {
+        return objectType.getTypeFlow(this, true);
+    }
+
     public TypeFlow<?> getAllInstantiatedTypeFlow() {
         return objectType.getAllInstantiatedTypeFlow(this, true);
     }
@@ -581,20 +585,20 @@ public abstract class PointsToAnalysis implements BigBang {
     @SuppressWarnings({"try"})
     private AnalysisType addRootClass(AnalysisType type, boolean addFields, boolean addArrayClass) {
         try (Indent indent = debug.logAndIndent("add root class %s", type.getName())) {
-            for (AnalysisField field : type.getInstanceFields(false)) {
-                if (addFields) {
+            if(addFields) {
+                for (AnalysisField field : type.getInstanceFields(false)) {
                     field.registerAsAccessed();
+
+                    TypeFlow<?> fieldFlow = type.getContextInsensitiveAnalysisObject().getInstanceFieldFlow(this, field, true);
+
+                    /*
+                     * For system classes any instantiated (sub)type of the declared field type can be
+                     * written to the field flow.
+                     */
+                    TypeFlow<?> fieldDeclaredTypeFlow = field.getType().getTypeFlow(this, true);
+                    fieldDeclaredTypeFlow.addUse(this, fieldFlow);
+                    fieldFlow.addUse(this, fieldDeclaredTypeFlow);
                 }
-
-                TypeFlow<?> fieldFlow = type.getContextInsensitiveAnalysisObject().getInstanceFieldFlow(this, field, true);
-
-                /*
-                 * For system classes any instantiated (sub)type of the declared field type can be
-                 * written to the field flow.
-                 */
-                TypeFlow<?> fieldDeclaredTypeFlow = field.getType().getTypeFlow(this, true);
-                fieldDeclaredTypeFlow.addUse(this, fieldFlow);
-                fieldFlow.addUse(this, fieldDeclaredTypeFlow);
             }
             if (type.getSuperclass() != null) {
                 addRootClass(type.getSuperclass(), addFields, addArrayClass);

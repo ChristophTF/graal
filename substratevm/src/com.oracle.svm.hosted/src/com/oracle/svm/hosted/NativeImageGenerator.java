@@ -54,6 +54,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Pair;
@@ -956,6 +957,18 @@ public class NativeImageGenerator {
         return SubstitutionProcessor.chainUpInOrder(allProcessors.toArray(new SubstitutionProcessor[0]));
     }
 
+    /*
+     * Adds some types to the AllEscapedTypeFlow that have been empirically figured out
+     * to be essential for a working Hello World program.
+     */
+    private static void registerNecessaryTypesAsEscaped(BigBang bb, String... typenames) throws ClassNotFoundException
+    {
+        for(String typename : typenames)
+        {
+            bb.getMetaAccess().lookupJavaType(Class.forName(typename)).registerAsEscaped();
+        }
+    }
+
     @SuppressWarnings("try")
     public static void initializeBigBang(Inflation bb, OptionValues options, FeatureHandler featureHandler, NativeLibraries nativeLibraries, DebugContext debug,
                     AnalysisMetaAccess aMetaAccess, SubstitutionProcessor substitutions, ImageClassLoader loader, boolean initForeignCalls, ClassInitializationPlugin classInitializationPlugin) {
@@ -997,6 +1010,15 @@ public class NativeImageGenerator {
             bb.addRootClass(Object[].class, false, false).registerAsInHeap();
             bb.addRootClass(CFunctionPointer[].class, false, false).registerAsInHeap();
             bb.addRootClass(PointerBase[].class, false, false).registerAsInHeap();
+
+            try {
+                registerNecessaryTypesAsEscaped(bb,
+                        "com.oracle.svm.core.hub.DynamicHub",
+                        "com.oracle.svm.core.posix.pthread.PthreadVMCondition",
+                        "com.oracle.svm.core.posix.pthread.PthreadVMMutex");
+            } catch(ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
 
             bb.addRootMethod(ReflectionUtil.lookupMethod(SubstrateArraycopySnippets.class, "doArraycopy", Object.class, int.class, Object.class, int.class, int.class), true);
             bb.addRootMethod(ReflectionUtil.lookupMethod(Object.class, "getClass"), true);

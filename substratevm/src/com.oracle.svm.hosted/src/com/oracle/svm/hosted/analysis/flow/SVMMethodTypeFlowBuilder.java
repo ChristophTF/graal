@@ -197,7 +197,7 @@ public class SVMMethodTypeFlowBuilder extends MethodTypeFlowBuilder {
                     /* Use a type state which consists of the entire node's type hierarchy. */
                     AnalysisType type = (AnalysisType) (objStamp.type() == null ? bb.getObjectType() : objStamp.type());
                     result = TypeFlowBuilder.create(bb, node, TypeFlow.class, () -> {
-                        TypeFlow<?> proxy = bb.analysisPolicy().proxy(sourcePosition(node), type.getAllInstantiatedTypeFlow(bb, true));
+                        TypeFlow<?> proxy = bb.analysisPolicy().proxy(sourcePosition(node), type.getTypeFlow(bb, true));
                         flowsGraph.addMiscEntryFlow(proxy);
                         return proxy;
                     });
@@ -226,7 +226,7 @@ public class SVMMethodTypeFlowBuilder extends MethodTypeFlowBuilder {
             AnalysisType valueType = (AnalysisType) (valueStamp.type() == null ? bb.getObjectType() : valueStamp.type());
 
             TypeFlowBuilder<?> storeBuilder = TypeFlowBuilder.create(bb, storeNode, TypeFlow.class, () -> {
-                TypeFlow<?> proxy = bb.analysisPolicy().proxy(sourcePosition(storeNode), valueType.getAllInstantiatedTypeFlow(bb, false));
+                TypeFlow<?> proxy = bb.analysisPolicy().proxy(sourcePosition(storeNode), valueType.getTypeFlow(bb, false));
                 flowsGraph.addMiscEntryFlow(proxy);
                 return proxy;
             });

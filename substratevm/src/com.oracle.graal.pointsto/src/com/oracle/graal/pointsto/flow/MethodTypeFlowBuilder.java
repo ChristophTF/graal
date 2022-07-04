@@ -524,7 +524,7 @@ public class MethodTypeFlowBuilder {
                     if (type.isJavaLangObject()) {
                         /* Return a proxy to the all-instantiated type flow. */
                         result = TypeFlowBuilder.create(bb, node, TypeFlow.class, () -> {
-                            TypeFlow<?> proxy = bb.analysisPolicy().proxy(sourcePosition(node), bb.getAllInstantiatedTypeFlow());
+                            TypeFlow<?> proxy = bb.analysisPolicy().proxy(sourcePosition(node), bb.getAllEscapedTypeFlow());
                             flowsGraph.addMiscEntryFlow(proxy);
                             return proxy;
                         });
@@ -1150,7 +1150,7 @@ public class MethodTypeFlowBuilder {
                     /* Word-to-object: Any object can flow out from a low level memory read. */
                     TypeFlowBuilder<?> wordToObjectBuilder = TypeFlowBuilder.create(bb, node, TypeFlow.class, () -> {
                         /* Use the all-instantiated type flow. */
-                        TypeFlow<?> objectFlow = bb.analysisPolicy().proxy(sourcePosition(node), bb.getAllInstantiatedTypeFlow());
+                        TypeFlow<?> objectFlow = bb.analysisPolicy().proxy(sourcePosition(node), bb.getAllEscapedTypeFlow());
                         flowsGraph.addMiscEntryFlow(objectFlow);
                         return objectFlow;
                     });
