@@ -57,6 +57,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.oracle.graal.pointsto.PointsToAnalysis;
 import org.graalvm.compiler.java.LambdaUtils;
 
 import com.oracle.graal.pointsto.BigBang;
@@ -182,6 +183,9 @@ public final class CallTreePrinter {
     public void buildCallTree() {
         /* Add all the roots to the tree. */
         List<AnalysisMethod> roots = new ArrayList<>();
+
+        PointsToAnalysis pta = (PointsToAnalysis) bb;
+
         for (AnalysisMethod m : bb.getUniverse().getMethods()) {
             if (m.isDirectRootMethod() && m.isImplementationInvoked()) {
                 roots.add(m);
@@ -189,7 +193,9 @@ public final class CallTreePrinter {
             if (m.isVirtualRootMethod()) {
                 for (AnalysisMethod impl : m.getImplementations()) {
                     AnalysisError.guarantee(impl.isImplementationInvoked());
-                    roots.add(impl);
+                    if(pta.getObjectType().getTypeFlow(pta, false).getState().containsType(impl.getDeclaringClass())) {
+                        roots.add(impl);
+                    }
                 }
             }
         }
